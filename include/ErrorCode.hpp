@@ -4,6 +4,7 @@
 enum class ErrorCode {
     NO_ERRORS = 0,
     ALLOCATION_ERROR = 1 << 0,
+    WINDOW_CLOSED    = 1 << 1,
 };
 
 #endif
