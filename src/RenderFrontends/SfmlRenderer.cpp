@@ -1,7 +1,10 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -11,7 +14,11 @@
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "RenderBackends/DefaultBackend.hpp"
+#include "RenderBackends/ArrayOptimizationsBackend.hpp"
+#include "RenderBackends/SimdBackend.hpp"
+#include "Timer.hpp"
 
+static ErrorCode InitText      (sf::Text *infoText, sf::Font *font);
 static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera);
 
 ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
@@ -30,22 +37,49 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
 
     sf::Sprite contentSprite (contentTexture);
 
-    while (mainWindow.isOpen ())
-    {
-        
+    sf::Font font;
+    sf::Text infoText;
+    InitText (&infoText, &font);
+
+    InitTimers (TIMERS_COUNT);
+
+    while (mainWindow.isOpen ()) {
+        StartTimer (FPS_TIMER);
         if (ProcessEvents (&mainWindow, &camera) != ErrorCode::NO_ERRORS) {
             break;
         }
 
         mainWindow.clear ();
-        UpdateTexture (texturePixels, &camera, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+
+        StartTimer (RENDER_TIMER);
+        UpdateTextureSimd (texturePixels, &camera, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+        GetTimerValue (RENDER_TIMER);
+
         contentTexture.update (texturePixels);
         mainWindow.draw (contentSprite);
+        mainWindow.draw (infoText);
 
         mainWindow.display ();
+
+        infoText.setString (std::to_string (1000 / GetTimerValue (FPS_TIMER)));
+    }
+    
+    DestroyTimers ();
+    free (texturePixels);
+
+    return ErrorCode::NO_ERRORS;
+}
+
+static ErrorCode InitText (sf::Text *infoText, sf::Font *font) {
+    if (!font->loadFromFile ("../fonts/JetBrainsMono-Bold.ttf")) {
+        return ErrorCode::FONT_NOT_LOADED;
     }
 
-    free (texturePixels);
+    infoText->setFont (*font);
+    infoText->setCharacterSize (INFO_TEXT_SIZE);
+    infoText->setFillColor (sf::Color::Green);
+    infoText->setStyle (sf::Text::Bold);
+    infoText->setString ("aaa\nbbb");
 
     return ErrorCode::NO_ERRORS;
 }
