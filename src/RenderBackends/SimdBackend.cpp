@@ -14,8 +14,8 @@ static float Indices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 
 static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY);
 
 static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY) {
-    float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->centerX;
-    float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->centerY;
+    float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
+    float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
     avxf_t x0Arr = avxf_t (x0) + avxf_t (deltaX) * avxf_t (Indices) * avxf_t (camera->scale);
     avxf_t y0Arr (y0);

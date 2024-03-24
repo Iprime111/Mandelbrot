@@ -6,14 +6,13 @@
 #include "ErrorCode.hpp"
 
 static size_t    TimersCount = 0;
-static uint32_t *TimersArray = NULL;
+static clock_t *TimersArray = NULL;
 
-static uint32_t GetTickCount ();
 
 ErrorCode InitTimers (size_t timersCount) {
     TimersCount = timersCount;
 
-    TimersArray = (uint32_t *) calloc (TimersCount, sizeof (uint32_t));
+    TimersArray = (clock_t *) calloc (TimersCount, sizeof (clock_t));
     if (!TimersArray)
         return ErrorCode::ALLOCATION_ERROR;
 
@@ -32,21 +31,14 @@ ErrorCode StartTimer (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    TimersArray [timerIndex] = GetTickCount ();
+    TimersArray [timerIndex] = clock ();
 
     return ErrorCode::NO_ERRORS;
 }
 
-uint32_t GetTimerValue (size_t timerIndex) {
+clock_t GetTimerValue (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    return GetTickCount () - TimersArray [timerIndex];
-}
-
-static uint32_t GetTickCount () {
-        struct timespec ts;
-
-        clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-        return (1000 * ts.tv_sec + ts.tv_nsec / 1000000);
+    return clock () - TimersArray [timerIndex];
 }

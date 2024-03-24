@@ -7,6 +7,7 @@ enum class ErrorCode {
     WINDOW_CLOSED      = 1 << 1,
     FONT_NOT_LOADED    = 1 << 2,
     INDEX_OUT_OF_RANGE = 1 << 3,
+    SHADER_LOAD_ERROR  = 1 << 4,
 };
 
 #endif

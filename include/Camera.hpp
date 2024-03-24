@@ -1,10 +1,11 @@
 #ifndef CAMERA_HPP_
 #define CAMERA_HPP_
     
+#include <SFML/System/Vector2.hpp>
+
 struct Camera {
-    float centerX;
-    float centerY;
-    float scale;
+    sf::Vector2f position = {};
+    float        scale    = 1.f;
 }; 
 
 #endif
