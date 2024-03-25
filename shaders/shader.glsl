@@ -18,8 +18,8 @@ const vec3 Gradient [GRADIENT_SIZE] = vec3 [GRADIENT_SIZE](
 
 int GetIterations()
 {
-    float x0 = (gl_FragCoord.x / ScreenSize.x - 0.5) * Scale + CameraPosition.x;
-    float y0 = (gl_FragCoord.y / ScreenSize.y - 0.5) * Scale - CameraPosition.y;
+    float x0 = (gl_FragCoord.x / ScreenSize.x - 0.5)                               * Scale + CameraPosition.x;
+    float y0 = (gl_FragCoord.y / ScreenSize.x - 0.5 * ScreenSize.y / ScreenSize.x) * Scale - CameraPosition.y;
  
     int iterations = 0;
     float xN = x0;

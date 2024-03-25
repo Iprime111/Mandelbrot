@@ -19,7 +19,7 @@ const float  MIN_SCALING              = 0.001f;
 
 const size_t MAX_INFO_TEXT_LENGTH       = 256;
 const size_t INFO_TEXT_SIZE             = 12;
-const char   INFO_TEXT_FORMAT_STRING [] = "FPS / Avg. FPS: %lu / %lu\nRender time / Avg. render time (ms): %lu / %lu\nRender method: %s";
+const char   INFO_TEXT_FORMAT_STRING [] = "FPS / Avg. FPS: %ld / %ld\nRender time / Avg. render time (ms): %ld / %ld\nRender method: %s";
 
 static const char *BACKEND_NAMES [BACKENDS_COUNT + 1] = {"Naive CPU", "Array optimized CPU", "SIMD optimized CPU", "GPU"};
 
@@ -27,9 +27,9 @@ const size_t TIMERS_COUNT             = 2;
 const size_t FPS_TIMER                = 0;
 const size_t RENDER_TIMER             = 1;
 
-const size_t AVG_NUMBERS_COUNT        = 100;
+const size_t AVG_NUMBERS_COUNT        = 300;
 
 const float deltaX = 1 / ((float) DEFAULT_WINDOW_WIDTH);
-const float deltaY = 1 / ((float) DEFAULT_WINDOW_HEIGHT);
+const float deltaY = 1 / ((float) DEFAULT_WINDOW_WIDTH);
 
 #endif

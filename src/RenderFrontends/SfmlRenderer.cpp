@@ -20,6 +20,7 @@
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "RenderBackends/BackendCommons.hpp"
+#include "RenderFrontends/SfmlRenderer.hpp"
 #include "Timer.hpp"
 
 //TODO: RenderContext struct
@@ -99,11 +100,15 @@ ErrorCode SfmlRenderCycle () {
         fpsTimesSum    += fpsTimeValue;
         avgNumbers++;
 
-        renderTimeAvg = renderTimesSum / avgNumbers;
-        fpsTimeAvg    = fpsTimesSum    / avgNumbers;
+        renderTimeAvg = renderTimesSum / (clock_t) avgNumbers;
+        fpsTimeAvg    = fpsTimesSum    / (clock_t) avgNumbers;
 
-        if (avgNumbers == AVG_NUMBERS_COUNT)
-            renderTimesSum = fpsTimesSum = avgNumbers = 0;
+        if (avgNumbers == AVG_NUMBERS_COUNT) {
+            fprintf (stderr, "Avg. FPS: %ld\nAvg render time: %ld\n\n", CLOCKS_PER_SEC / fpsTimeAvg, renderTimeAvg * 1000 / CLOCKS_PER_SEC);
+
+            renderTimesSum = fpsTimesSum = 0;
+            avgNumbers     = 0;
+        }
         
         infoText.setString (RenderStatsToString (fpsTimeValue, fpsTimeAvg, renderTimeValue, renderTimeAvg, currentBackend));
         
@@ -127,7 +132,7 @@ static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, cloc
     return InfoTextBuffer;
 }
 
-static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient) {
+static inline ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient) {
     assert (mainWindow);
     assert (camera);
 

@@ -35,7 +35,7 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
 
         uint8_t cmp [OPTIMIZATION_RATE] = {}; Loop cmp [idx] = (r2 [idx] <= MAX_POINT_RADIUS_SQUARE);
 
-        uint64_t mask = 0;
+        int32_t mask = 0;
         Loop mask |= (cmp [idx] << idx);
 
         if (!mask)

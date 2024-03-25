@@ -15,13 +15,13 @@ void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX,
         return;
     }
 
-    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * GRADIENT_SIZES [gradientNumber];
+    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * (float) GRADIENT_SIZES [gradientNumber];
     
-    int clr1 = (int)mu;
-    double t2 = mu - clr1;
-    double t1 = 1 - t2;
-    clr1 = clr1 % GRADIENT_SIZES [gradientNumber];
-    int clr2 = (clr1 + 1) % GRADIENT_SIZES [gradientNumber];
+    int clr1 = (int) mu;
+    float t2 = mu - (float) clr1;
+    float t1 = 1 - t2;
+    clr1 = clr1 % (int) GRADIENT_SIZES [gradientNumber];
+    int clr2 = (clr1 + 1) % (int) GRADIENT_SIZES [gradientNumber];
 
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL] 
         = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].r * t1 + GRADIENTS [gradientNumber][clr2].r * t2);
