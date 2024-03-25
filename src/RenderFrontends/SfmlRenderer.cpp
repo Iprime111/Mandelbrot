@@ -67,11 +67,11 @@ ErrorCode SfmlRenderCycle () {
 
     size_t avgNumbers = 0;
     
-    clock_t fpsTimeAvg         = 0;
-    clock_t renderTimeAvg      = 0;
+    long fpsTimeAvg         = 0;
+    long renderTimeAvg      = 0;
 
-    clock_t fpsTimesSum        = 0;
-    clock_t renderTimesSum     = 0;
+    long fpsTimesSum        = 0;
+    long renderTimesSum     = 0;
 
     while (mainWindow.isOpen ()) {
         StartTimer (FPS_TIMER);
@@ -93,18 +93,18 @@ ErrorCode SfmlRenderCycle () {
             mainWindow.draw (contentSprite, &shader);
         }
 
-        clock_t renderTimeValue = GetTimerValue (RENDER_TIMER);
-        clock_t fpsTimeValue    = GetTimerValue (FPS_TIMER);
+        long renderTimeValue = GetTimerValue (RENDER_TIMER);
+        long fpsTimeValue    = GetTimerValue (FPS_TIMER);
     
         renderTimesSum += renderTimeValue;
         fpsTimesSum    += fpsTimeValue;
         avgNumbers++;
 
-        renderTimeAvg = renderTimesSum / (clock_t) avgNumbers;
-        fpsTimeAvg    = fpsTimesSum    / (clock_t) avgNumbers;
+        renderTimeAvg = renderTimesSum / (long) avgNumbers;
+        fpsTimeAvg    = fpsTimesSum    / (long) avgNumbers;
 
         if (avgNumbers == AVG_NUMBERS_COUNT) {
-            fprintf (stderr, "Avg. FPS: %ld\nAvg render time: %ld\n\n", CLOCKS_PER_SEC / fpsTimeAvg, renderTimeAvg * 1000 / CLOCKS_PER_SEC);
+            fprintf (stderr, "Avg. FPS: %ld\nAvg render time: %ld\n\n", 1000 / fpsTimeAvg, renderTimeAvg);
 
             renderTimesSum = fpsTimesSum = 0;
             avgNumbers     = 0;
@@ -122,12 +122,12 @@ ErrorCode SfmlRenderCycle () {
 }
 
 static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, clock_t renderTimeValue, clock_t renderTimeAvg, size_t currentBackend) {
-    clock_t fpsValue = fpsTimeValue > 0 ? CLOCKS_PER_SEC / fpsTimeValue : CLOCKS_PER_SEC;
-    clock_t fpsAvg   = fpsTimeAvg > 0   ? CLOCKS_PER_SEC / fpsTimeAvg   : CLOCKS_PER_SEC;
+    long fpsValue = fpsTimeValue > 0 ? 1000 / fpsTimeValue : 0;
+    long fpsAvg   = fpsTimeAvg   > 0 ? 1000 / fpsTimeAvg   : 0;
 
     snprintf (InfoTextBuffer, MAX_INFO_TEXT_LENGTH, INFO_TEXT_FORMAT_STRING, 
-              fpsValue, fpsAvg, renderTimeValue * 1000 / CLOCKS_PER_SEC, 
-              renderTimeAvg * 1000 / CLOCKS_PER_SEC, BACKEND_NAMES [currentBackend]);
+              fpsValue, fpsAvg, renderTimeValue, 
+              renderTimeAvg, BACKEND_NAMES [currentBackend]);
 
     return InfoTextBuffer;
 }
