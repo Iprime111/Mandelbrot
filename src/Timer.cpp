@@ -6,13 +6,13 @@
 #include "ErrorCode.hpp"
 
 static size_t    TimersCount = 0;
-static clock_t *TimersArray = NULL;
+static timespec *TimersArray = NULL;
 
 
 ErrorCode InitTimers (size_t timersCount) {
     TimersCount = timersCount;
 
-    TimersArray = (clock_t *) calloc (TimersCount, sizeof (clock_t));
+    TimersArray = (timespec *) calloc (TimersCount, sizeof (timespec));
     if (!TimersArray)
         return ErrorCode::ALLOCATION_ERROR;
 
@@ -31,14 +31,17 @@ ErrorCode StartTimer (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    TimersArray [timerIndex] = clock ();
+    clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &TimersArray [timerIndex]);
 
     return ErrorCode::NO_ERRORS;
 }
 
-clock_t GetTimerValue (size_t timerIndex) {
+long GetTimerValue (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    return clock () - TimersArray [timerIndex];
+    timespec endTimespec = {};
+    clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &endTimespec);
+
+    return 1000 * endTimespec.tv_sec + endTimespec.tv_nsec * 1e-6 - (1000 * TimersArray [timerIndex].tv_sec + TimersArray [timerIndex].tv_nsec * 1e-6);
 }

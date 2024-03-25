@@ -9,6 +9,6 @@
 ErrorCode InitTimers    (size_t timersCount);
 ErrorCode DestroyTimers ();
 ErrorCode StartTimer    (size_t timerIndex);
-clock_t  GetTimerValue (size_t timerIndex);
+long      GetTimerValue (size_t timerIndex);
 
 #endif  
