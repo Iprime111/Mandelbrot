@@ -27,8 +27,8 @@
 static char *InfoTextBuffer = NULL;
 
 static ErrorCode InitText      (sf::Text *infoText, sf::Font *font);
-static ErrorCode InitShader    (sf::Shader *shader, size_t windowWidth, size_t windowHeight);
-static ErrorCode InitTexture   (sf::Texture *contentTexture, sf::Uint8 **texturePixels, size_t windowWidth, size_t windowHeight);
+static ErrorCode InitShader    (sf::Shader *shader);
+static ErrorCode InitTexture   (sf::Texture *contentTexture, sf::Uint8 **texturePixels);
 static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient);
 
 static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, clock_t renderTimeValue, clock_t renderTimeAvg, size_t currentBackend);
@@ -38,16 +38,16 @@ static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, cloc
 #define InitWithErrorCheck(INIT_FUNCTION) \
     if ((error = INIT_FUNCTION) != ErrorCode::NO_ERRORS) {DestroyEntities (); return error;}
 
-ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
+ErrorCode SfmlRenderCycle () {
     ErrorCode error = ErrorCode::NO_ERRORS;
 
     Camera camera = {.position = sf::Vector2f (0.f, 0.f), .scale = 1.f};
 
-    sf::RenderWindow mainWindow (sf::VideoMode (windowWidth, windowHeight), "Mandelbrot", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow mainWindow (sf::VideoMode (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar | sf::Style::Close);
     sf::Texture contentTexture = {};
     sf::Uint8 *texturePixels   = NULL;
 
-    InitWithErrorCheck (InitTexture (&contentTexture, &texturePixels, windowWidth, windowHeight));
+    InitWithErrorCheck (InitTexture (&contentTexture, &texturePixels));
 
     sf::Sprite contentSprite (contentTexture);
 
@@ -59,7 +59,7 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
     InitWithErrorCheck (InitTimers (TIMERS_COUNT));
 
     sf::Shader shader;
-    InitWithErrorCheck (InitShader (&shader, windowWidth, windowHeight));
+    InitWithErrorCheck (InitShader (&shader));
 
     size_t currentBackend  = 0;
     size_t currentGradient = 0;
@@ -83,7 +83,7 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
         StartTimer (RENDER_TIMER);
 
         if (currentBackend < BACKENDS_COUNT) {
-            AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, currentGradient);
+            AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, currentGradient);
             contentTexture.update (texturePixels);
             mainWindow.draw (contentSprite);
         } else {
@@ -224,27 +224,27 @@ static ErrorCode InitText (sf::Text *infoText, sf::Font *font) {
     return ErrorCode::NO_ERRORS;
 }
 
-static ErrorCode InitShader (sf::Shader *shader, size_t windowWidth, size_t windowHeight) {
+static ErrorCode InitShader (sf::Shader *shader) {
     assert (shader);
 
     if (!shader->loadFromFile ("../shaders/shader.glsl", sf::Shader::Fragment))
         return ErrorCode::SHADER_LOAD_ERROR;
 
-    shader->setUniform ("ScreenSize", sf::Vector2f ((float) windowWidth, (float) windowHeight));
+    shader->setUniform ("ScreenSize", sf::Vector2f ((float) DEFAULT_WINDOW_WIDTH, (float) DEFAULT_WINDOW_HEIGHT));
 
     return ErrorCode::NO_ERRORS;
 }
 
-static ErrorCode InitTexture (sf::Texture *contentTexture, sf::Uint8 **texturePixels, size_t windowWidth, size_t windowHeight) {
+static ErrorCode InitTexture (sf::Texture *contentTexture, sf::Uint8 **texturePixels) {
     assert (contentTexture);
     assert (texturePixels);
 
-    *texturePixels = (sf::Uint8 *) calloc (windowWidth * windowHeight * BYTES_PER_PIXEL, sizeof (sf::Uint8));
+    *texturePixels = (sf::Uint8 *) calloc (DEFAULT_WINDOW_WIDTH * DEFAULT_WINDOW_HEIGHT * BYTES_PER_PIXEL, sizeof (sf::Uint8));
 
-    if (!contentTexture->create (windowWidth, windowHeight))
+    if (!contentTexture->create (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT))
         return ErrorCode::ALLOCATION_ERROR;
 
-    for (size_t alphaNumber = 0; alphaNumber < windowWidth * windowHeight; alphaNumber++)
+    for (size_t alphaNumber = 0; alphaNumber < DEFAULT_WINDOW_WIDTH * DEFAULT_WINDOW_HEIGHT; alphaNumber++)
         (*texturePixels) [alphaNumber * BYTES_PER_PIXEL + 3] = 0xff;
 
     return ErrorCode::NO_ERRORS;

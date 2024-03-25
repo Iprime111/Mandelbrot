@@ -7,6 +7,6 @@
 #include "Camera.hpp"
 #include "ErrorCode.hpp"
 
-ErrorCode UpdateTextureSimd (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height, size_t gradientNumber);
+ErrorCode UpdateTextureSimd (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber);
 
 #endif

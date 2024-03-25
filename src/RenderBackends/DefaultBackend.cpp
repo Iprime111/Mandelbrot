@@ -34,12 +34,12 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height, size_t gradientNumber) {
+ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber) {
     assert (pixelArray);
     assert (camera);
     
-    for (size_t y = 0; y < height; y++) {
-        for (size_t x = 0; x < width; x++) {
+    for (size_t y = 0; y < DEFAULT_WINDOW_HEIGHT; y++) {
+        for (size_t x = 0; x < DEFAULT_WINDOW_WIDTH; x++) {
             UpdatePixel (pixelArray, camera,  x, y, gradientNumber);
         }
     }
