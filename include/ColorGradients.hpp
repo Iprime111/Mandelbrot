@@ -4,7 +4,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <cstddef>
 
-const size_t GRADIENT_SIZES [] = {5};
+#define GRADIENT_SIZE(GRAD) sizeof (GRAD) / sizeof (sf::Color)
 
 const sf::Color DEFAULT_GRADIENT [] = {
     sf::Color (  0,   7, 100),
@@ -14,4 +14,28 @@ const sf::Color DEFAULT_GRADIENT [] = {
     sf::Color (  0,   2,   0),
 };
 
+const sf::Color GREEN_GRADIENT [] = {
+    sf::Color (0, 0, 0),
+    sf::Color (0, 200, 0),
+    sf::Color (0, 0, 0),
+};
+
+const sf::Color BLACK_WHITE_GRADIENT [] {
+    sf::Color (0, 0, 0),
+    sf::Color (255, 255, 255),
+    sf::Color (0, 0, 0),
+};
+
+const size_t GRADIENT_SIZES [] = {GRADIENT_SIZE (DEFAULT_GRADIENT), GRADIENT_SIZE (GREEN_GRADIENT), 
+                                  GRADIENT_SIZE (BLACK_WHITE_GRADIENT)};
+
+static const sf::Color *GRADIENTS [] = {
+    DEFAULT_GRADIENT,
+    GREEN_GRADIENT,
+    BLACK_WHITE_GRADIENT,
+};
+
+const size_t GRADIENTS_COUNT = sizeof (GRADIENTS) / sizeof (sf::Color *);
+
+#undef GRADIENT_SIZE
 #endif

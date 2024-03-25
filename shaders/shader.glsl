@@ -6,6 +6,8 @@ uniform vec2 ScreenSize;
 uniform vec2 CameraPosition;
 uniform float Scale;
 
+//TODO: multiple gradients (pain in my ass)
+
 const vec3 Gradient [GRADIENT_SIZE] = vec3 [GRADIENT_SIZE](
     vec3 (0.000, 0.027, 0.392),
     vec3 (0.125, 0.420, 0.796),

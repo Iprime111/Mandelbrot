@@ -1,4 +1,5 @@
 #include <SFML/Config.hpp>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 
@@ -11,9 +12,9 @@
 static const size_t OPTIMIZATION_RATE = 16;
 #define Loop for (size_t idx = 0; idx < OPTIMIZATION_RATE; idx++)
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY);
+static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY) {
+static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
     float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
@@ -46,16 +47,18 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
         Loop yN [idx] = 2 * xy [idx] + y0Arr [idx];
     }
 
-    Loop SetPixelColor (pixelArray, iterations [idx], pixelX + idx, pixelY);
+    Loop SetPixelColor (pixelArray, iterations [idx], pixelX + idx, pixelY, gradientNumber);
 
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureArrayOptimized (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height) {
-    
+ErrorCode UpdateTextureArrayOptimized (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height, size_t gradientNumber) {
+    assert (pixelArray);
+    assert (camera);
+
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x += OPTIMIZATION_RATE) {
-            UpdatePixel (pixelArray, camera, x, y);
+            UpdatePixel (pixelArray, camera, x, y, gradientNumber);
         }
     }
 

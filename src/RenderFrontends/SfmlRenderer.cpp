@@ -16,17 +16,20 @@
 #include <cstdio>
 #include <ctime>
 
+#include "ColorGradients.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "RenderBackends/BackendCommons.hpp"
 #include "Timer.hpp"
+
+//TODO: RenderContext struct
 
 static char *InfoTextBuffer = NULL;
 
 static ErrorCode InitText      (sf::Text *infoText, sf::Font *font);
 static ErrorCode InitShader    (sf::Shader *shader, size_t windowWidth, size_t windowHeight);
 static ErrorCode InitTexture   (sf::Texture *contentTexture, sf::Uint8 **texturePixels, size_t windowWidth, size_t windowHeight);
-static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend);
+static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient);
 
 static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, clock_t renderTimeValue, clock_t renderTimeAvg, size_t currentBackend);
 
@@ -58,7 +61,8 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
     sf::Shader shader;
     InitWithErrorCheck (InitShader (&shader, windowWidth, windowHeight));
 
-    size_t currentBackend = 0;
+    size_t currentBackend  = 0;
+    size_t currentGradient = 0;
 
     size_t avgNumbers = 0;
     
@@ -70,7 +74,7 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
 
     while (mainWindow.isOpen ()) {
         StartTimer (FPS_TIMER);
-        if (ProcessEvents (&mainWindow, &camera, &currentBackend) != ErrorCode::NO_ERRORS) {
+        if (ProcessEvents (&mainWindow, &camera, &currentBackend, &currentGradient) != ErrorCode::NO_ERRORS) {
             break;
         }
 
@@ -79,7 +83,7 @@ ErrorCode SfmlRenderCycle (size_t windowWidth, size_t windowHeight) {
         StartTimer (RENDER_TIMER);
 
         if (currentBackend < BACKENDS_COUNT) {
-            AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+            AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, currentGradient);
             contentTexture.update (texturePixels);
             mainWindow.draw (contentSprite);
         } else {
@@ -123,7 +127,7 @@ static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, cloc
     return InfoTextBuffer;
 }
 
-static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend) {
+static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient) {
     assert (mainWindow);
     assert (camera);
 
@@ -178,8 +182,22 @@ static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, si
                         *currentBackend = 0;
                     break;
 
-                    default:
-                        break;
+                case sf::Keyboard::Scancode::H:
+                    if (*currentGradient > 0)
+                        (*currentGradient)--;
+                    else
+                        *currentGradient = GRADIENTS_COUNT - 1;
+                    break;
+
+                case sf::Keyboard::Scancode::L:
+                    if (*currentGradient < GRADIENTS_COUNT - 1)
+                        (*currentGradient)++;
+                    else
+                        *currentGradient = 0;
+                    break;
+
+                default:
+                    break;
             }
         }
     }

@@ -4,6 +4,6 @@
 #include <SFML/Config.hpp>
 #include <cstddef>
 
-void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX, size_t pixelY);
+void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
 #endif  

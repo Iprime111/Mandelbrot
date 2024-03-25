@@ -5,7 +5,7 @@
 #include "Config.hpp"
 #include "RenderBackends/PixelColor.hpp"
 
-void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX, size_t pixelY) {
+void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX, size_t pixelY, size_t gradientNumber) {
 
     if (iterationCount >= MAX_ITERATIONS_PER_PIXEL) {
         pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL]     = 0;
@@ -15,20 +15,20 @@ void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX,
         return;
     }
 
-    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * GRADIENT_SIZES [0];
+    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * GRADIENT_SIZES [gradientNumber];
     
     int clr1 = (int)mu;
     double t2 = mu - clr1;
     double t1 = 1 - t2;
-    clr1 = clr1 % GRADIENT_SIZES [0];
-    int clr2 = (clr1 + 1) % GRADIENT_SIZES [0];
+    clr1 = clr1 % GRADIENT_SIZES [gradientNumber];
+    int clr2 = (clr1 + 1) % GRADIENT_SIZES [gradientNumber];
 
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL] 
-        = (sf::Uint8) (DEFAULT_GRADIENT [clr1].r * t1 + DEFAULT_GRADIENT [clr2].r * t2);
+        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].r * t1 + GRADIENTS [gradientNumber][clr2].r * t2);
 
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL + 1] 
-        = (sf::Uint8) (DEFAULT_GRADIENT [clr1].g * t1 + DEFAULT_GRADIENT [clr2].g * t2);
+        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].g * t1 + GRADIENTS [gradientNumber][clr2].g * t2);
     
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL + 2] 
-        = (sf::Uint8) (DEFAULT_GRADIENT [clr1].b * t1 + DEFAULT_GRADIENT [clr2].b * t2);
+        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].b * t1 + GRADIENTS [gradientNumber][clr2].b * t2);
 }

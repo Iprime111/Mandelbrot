@@ -10,7 +10,7 @@
 #include "RenderBackends/DefaultBackend.hpp"
 #include "RenderBackends/SimdBackend.hpp"
 
-typedef ErrorCode (* TextureUpdater) (sf::Uint8 *texturePixels, Camera *camera, size_t width, size_t height);
+typedef ErrorCode (* TextureUpdater) (sf::Uint8 *texturePixels, Camera *camera, size_t width, size_t height, size_t gradientNumber);
 
 const TextureUpdater AVAILABLE_BACKENDS [] = {UpdateTextureDefault, UpdateTextureArrayOptimized, UpdateTextureSimd};
 const size_t BACKENDS_COUNT = sizeof (AVAILABLE_BACKENDS) / sizeof (TextureUpdater);

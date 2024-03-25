@@ -1,5 +1,6 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <cassert>
 #include <cstddef>
 
 #include "Config.hpp"
@@ -7,9 +8,9 @@
 #include "RenderBackends/DefaultBackend.hpp"
 #include "RenderBackends/PixelColor.hpp"
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY);
+static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY) {
+static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
     float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
@@ -28,16 +29,18 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
         yN = 2 * xy + y0;
     }
 
-    SetPixelColor (pixelArray, iterations, pixelX, pixelY);
+    SetPixelColor (pixelArray, iterations, pixelX, pixelY, gradientNumber);
 
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height) {
+ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t width, size_t height, size_t gradientNumber) {
+    assert (pixelArray);
+    assert (camera);
     
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
-            UpdatePixel (pixelArray, camera,  x, y);
+            UpdatePixel (pixelArray, camera,  x, y, gradientNumber);
         }
     }
 
