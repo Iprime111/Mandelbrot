@@ -6,13 +6,14 @@
 #include "ErrorCode.hpp"
 
 static size_t    TimersCount = 0;
-static timespec *TimersArray = NULL;
+static uint64_t *TimersArray = NULL;
 
+inline uint64_t GetTime ();
 
 ErrorCode InitTimers (size_t timersCount) {
     TimersCount = timersCount;
 
-    TimersArray = (timespec *) calloc (TimersCount, sizeof (timespec));
+    TimersArray = (uint64_t *) calloc (TimersCount, sizeof (uint64_t));
     if (!TimersArray)
         return ErrorCode::ALLOCATION_ERROR;
 
@@ -31,7 +32,7 @@ ErrorCode StartTimer (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &TimersArray [timerIndex]);
+    TimersArray [timerIndex] = GetTime ();
 
     return ErrorCode::NO_ERRORS;
 }
@@ -40,8 +41,13 @@ long GetTimerValue (size_t timerIndex) {
     assert (TimersArray);
     assert (timerIndex < TimersCount);
 
-    timespec endTimespec = {};
-    clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &endTimespec);
+    return GetTime () - TimersArray [timerIndex];
+}
 
-    return 1000 * endTimespec.tv_sec + endTimespec.tv_nsec * 1e-6 - (1000 * TimersArray [timerIndex].tv_sec + TimersArray [timerIndex].tv_nsec * 1e-6);
+inline uint64_t GetTime () {
+    uint32_t axReg = 0, dxReg = 0;
+
+    asm volatile ("rdtsc" : "=a" (axReg), "=d" (dxReg));
+    
+    return ((uint64_t) dxReg << 32) | axReg;
 }

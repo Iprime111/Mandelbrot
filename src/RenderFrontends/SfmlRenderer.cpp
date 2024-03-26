@@ -32,7 +32,7 @@ static ErrorCode InitShader    (sf::Shader *shader);
 static ErrorCode InitTexture   (sf::Texture *contentTexture, sf::Uint8 **texturePixels);
 static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient);
 
-static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, clock_t renderTimeValue, clock_t renderTimeAvg, size_t currentBackend);
+static char *RenderStatsToString (uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg, size_t currentBackend);
 
 #define DestroyEntities() DestroyTimers (); free (texturePixels); free (InfoTextBuffer);
 
@@ -67,11 +67,11 @@ ErrorCode SfmlRenderCycle () {
 
     size_t avgNumbers = 0;
     
-    long fpsTimeAvg         = 0;
-    long renderTimeAvg      = 0;
+    uint64_t frameTimeAvg   = 0;
+    uint64_t renderTimeAvg  = 0;
 
-    long fpsTimesSum        = 0;
-    long renderTimesSum     = 0;
+    uint64_t frameTimesSum  = 0;
+    uint64_t renderTimesSum = 0;
 
     while (mainWindow.isOpen ()) {
         StartTimer (FPS_TIMER);
@@ -83,34 +83,40 @@ ErrorCode SfmlRenderCycle () {
         
         StartTimer (RENDER_TIMER);
 
+        uint64_t renderTimeValue = 0;
+
         if (currentBackend < BACKENDS_COUNT) {
             AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, currentGradient);
             contentTexture.update (texturePixels);
+
+            renderTimeValue = GetTimerValue (RENDER_TIMER);
+
             mainWindow.draw (contentSprite);
         } else {
             shader.setUniform ("CameraPosition", camera.position);
             shader.setUniform ("Scale", camera.scale);
             mainWindow.draw (contentSprite, &shader);
+
+            renderTimeValue = GetTimerValue (RENDER_TIMER);
         }
 
-        long renderTimeValue = GetTimerValue (RENDER_TIMER);
-        long fpsTimeValue    = GetTimerValue (FPS_TIMER);
+        uint64_t frameTimeValue = GetTimerValue (FPS_TIMER);
     
         renderTimesSum += renderTimeValue;
-        fpsTimesSum    += fpsTimeValue;
+        frameTimesSum  += frameTimeValue;
         avgNumbers++;
 
-        renderTimeAvg = renderTimesSum / (long) avgNumbers;
-        fpsTimeAvg    = fpsTimesSum    / (long) avgNumbers;
+        renderTimeAvg = renderTimesSum / (uint64_t) avgNumbers;
+        frameTimeAvg  = frameTimesSum  / (uint64_t) avgNumbers;
 
         if (avgNumbers == AVG_NUMBERS_COUNT) {
-            fprintf (stderr, "Avg. FPS: %ld\nAvg render time: %ld\n\n", 1000 / fpsTimeAvg, renderTimeAvg);
+            fprintf (stderr, "Avg. frame time (ticks): %lu\nAvg render time (ticks): %lu\n\n", frameTimeAvg, renderTimeAvg);
 
-            renderTimesSum = fpsTimesSum = 0;
+            renderTimesSum = frameTimesSum = 0;
             avgNumbers     = 0;
         }
         
-        infoText.setString (RenderStatsToString (fpsTimeValue, fpsTimeAvg, renderTimeValue, renderTimeAvg, currentBackend));
+        infoText.setString (RenderStatsToString (frameTimeValue, frameTimeAvg, renderTimeValue, renderTimeAvg, currentBackend));
         
         mainWindow.draw (infoText);
         mainWindow.display ();
@@ -121,12 +127,10 @@ ErrorCode SfmlRenderCycle () {
     return ErrorCode::NO_ERRORS;
 }
 
-static char *RenderStatsToString (clock_t fpsTimeValue, clock_t fpsTimeAvg, clock_t renderTimeValue, clock_t renderTimeAvg, size_t currentBackend) {
-    long fpsValue = fpsTimeValue > 0 ? 1000 / fpsTimeValue : 0;
-    long fpsAvg   = fpsTimeAvg   > 0 ? 1000 / fpsTimeAvg   : 0;
+static char *RenderStatsToString (uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg, size_t currentBackend) {
 
     snprintf (InfoTextBuffer, MAX_INFO_TEXT_LENGTH, INFO_TEXT_FORMAT_STRING, 
-              fpsValue, fpsAvg, renderTimeValue, 
+              frameTimeValue, frameTimeAvg, renderTimeValue, 
               renderTimeAvg, BACKEND_NAMES [currentBackend]);
 
     return InfoTextBuffer;
@@ -136,6 +140,25 @@ static inline ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *cam
     assert (mainWindow);
     assert (camera);
 
+    #define Key(KEY_CODE) case sf::Keyboard::Scancode::KEY_CODE:
+    #define IncrementCameraField(FIELD, VALUE) camera->FIELD += (VALUE) * camera->scale; break
+    #define IncrementRenderParameter(PARAMETER, MAX_VALUE) \
+        if (*(PARAMETER) < MAX_VALUE) {                    \
+            (*(PARAMETER))++;                              \
+        } else {                                           \
+            *(PARAMETER) = 0;                              \
+        }                                                  \
+        break
+
+    #define DecrementRenderParameter(PARAMETER, MAX_VALUE) \
+        if (*(PARAMETER) > 0) {                            \
+            (*(PARAMETER))--;                              \
+        } else {                                           \
+            *(PARAMETER) = MAX_VALUE;                      \
+        }                                                  \
+        break
+
+
     for (sf::Event event = {}; mainWindow->pollEvent (event);) {
         if (event.type == sf::Event::Closed) {
             mainWindow->close ();
@@ -143,69 +166,29 @@ static inline ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *cam
 
         } else if (event.type == sf::Event::KeyPressed) {
             switch (event.key.scancode) {
-                case sf::Keyboard::Scancode::Equal:
-                    if (camera->scale > MIN_SCALING)
-                        camera->scale -= SCALE_INCREMENT * camera->scale;
-                    break;
-                
-                case sf::Keyboard::Scancode::Hyphen:
-                    if (camera->scale < MAX_SCALING)
-                        camera->scale += SCALE_INCREMENT * camera->scale;
-                    break;
+                Key (Equal)  if (camera->scale > MIN_SCALING) {IncrementCameraField (scale, -SCALE_INCREMENT);} break;
+                Key (Hyphen) if (camera->scale < MAX_SCALING) {IncrementCameraField (scale,  SCALE_INCREMENT);} break;
 
-                case sf::Keyboard::Scancode::W:
-                case sf::Keyboard::Scancode::Up:
-                    camera->position.y -= Y_SPEED * camera->scale;
-                    break;
+                Key (W) Key (Up)    IncrementCameraField (position.y, -Y_SPEED);
+                Key (A) Key (Left)  IncrementCameraField (position.x, -X_SPEED);
+                Key (S) Key (Down)  IncrementCameraField (position.y,  Y_SPEED);
+                Key (D) Key (Right) IncrementCameraField (position.x,  X_SPEED);
 
-                case sf::Keyboard::Scancode::A:
-                case sf::Keyboard::Scancode::Left:
-                    camera->position.x -= X_SPEED * camera->scale;
-                    break;
-
-                case sf::Keyboard::Scancode::S:
-                case sf::Keyboard::Scancode::Down:
-                    camera->position.y += Y_SPEED * camera->scale;
-                    break;
-
-                case sf::Keyboard::Scancode::D:
-                case sf::Keyboard::Scancode::Right:
-                    camera->position.x += X_SPEED * camera->scale;
-                    break;
-
-                case sf::Keyboard::Scancode::J:
-                    if (*currentBackend > 0)
-                        (*currentBackend)--;
-                    else
-                        *currentBackend = BACKENDS_COUNT;
-                    break;
-
-                case sf::Keyboard::Scancode::K:
-                    if (*currentBackend < BACKENDS_COUNT)
-                        (*currentBackend)++;
-                    else
-                        *currentBackend = 0;
-                    break;
-
-                case sf::Keyboard::Scancode::H:
-                    if (*currentGradient > 0)
-                        (*currentGradient)--;
-                    else
-                        *currentGradient = GRADIENTS_COUNT - 1;
-                    break;
-
-                case sf::Keyboard::Scancode::L:
-                    if (*currentGradient < GRADIENTS_COUNT - 1)
-                        (*currentGradient)++;
-                    else
-                        *currentGradient = 0;
-                    break;
-
+                Key (J) DecrementRenderParameter (currentBackend,  BACKENDS_COUNT);
+                Key (K) IncrementRenderParameter (currentBackend,  BACKENDS_COUNT);
+                Key (H) DecrementRenderParameter (currentGradient, GRADIENTS_COUNT - 1);
+                Key (L) IncrementRenderParameter (currentGradient, GRADIENTS_COUNT - 1);
+ 
                 default:
                     break;
             }
         }
     }
+
+    #undef Key
+    #undef IncrementCameraField
+    #undef IncrementRenderParameter
+    #undef DecrementRenderParameter
 
     return ErrorCode::NO_ERRORS;
 }

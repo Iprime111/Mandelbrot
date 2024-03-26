@@ -19,7 +19,7 @@ const float  MIN_SCALING              = 0.001f;
 
 const size_t MAX_INFO_TEXT_LENGTH       = 256;
 const size_t INFO_TEXT_SIZE             = 12;
-const char   INFO_TEXT_FORMAT_STRING [] = "FPS / Avg. FPS: %ld / %ld\nRender time / Avg. render time (ms): %ld / %ld\nRender method: %s";
+const char   INFO_TEXT_FORMAT_STRING [] = "Frame time / Avg. frame time (ticks): %lu / %lu\nRender time / Avg. render time (ticks): %lu / %lu\nRender method: %s";
 
 static const char *BACKEND_NAMES [BACKENDS_COUNT + 1] = {"Naive CPU", "Array optimized CPU", "SIMD optimized CPU", "GPU"};
 
