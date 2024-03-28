@@ -5,6 +5,7 @@
 #include "Config.hpp"
 #include "RenderBackends/PixelColor.hpp"
 
+//NOTE smoothing algo (along with original variable naming) is taken from http://www.csharphelper.com/howtos/howto_mandelbrot_smooth.html
 void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX, size_t pixelY, size_t gradientNumber) {
 
     if (iterationCount >= MAX_ITERATIONS_PER_PIXEL) {
@@ -15,20 +16,22 @@ void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX,
         return;
     }
 
-    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * (float) GRADIENT_SIZES [gradientNumber];
+    const Gradient *currentGradient = &GRADIENTS [gradientNumber];
+
+    float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * (float) currentGradient->size;
     
-    int clr1 = (int) mu;            //TODO poor variable names
+    int clr1 = (int) mu;
     float t2 = mu - (float) clr1;
     float t1 = 1 - t2;
-    clr1 = clr1 % (int) GRADIENT_SIZES [gradientNumber];
-    int clr2 = (clr1 + 1) % (int) GRADIENT_SIZES [gradientNumber];
+    clr1 = clr1 % (int) currentGradient->size;
+    int clr2 = (clr1 + 1) % (int) currentGradient->size;
 
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL] 
-        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].r * t1 + GRADIENTS [gradientNumber][clr2].r * t2);
+        = (sf::Uint8) (currentGradient->colors [clr1].r * t1 + currentGradient->colors [clr2].r * t2);
 
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL + 1] 
-        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].g * t1 + GRADIENTS [gradientNumber][clr2].g * t2);
+        = (sf::Uint8) (currentGradient->colors [clr1].g * t1 + currentGradient->colors [clr2].g * t2);
     
     pixelArray [(pixelX + pixelY * DEFAULT_WINDOW_WIDTH) * BYTES_PER_PIXEL + 2] 
-        = (sf::Uint8) (GRADIENTS [gradientNumber][clr1].b * t1 + GRADIENTS [gradientNumber][clr2].b * t2);
+        = (sf::Uint8) (currentGradient->colors [clr1].b * t1 + currentGradient->colors [clr2].b * t2);
 }

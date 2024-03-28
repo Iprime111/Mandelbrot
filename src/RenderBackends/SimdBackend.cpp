@@ -10,7 +10,7 @@
 #include "RenderBackends/PixelColor.hpp"
 #include "RenderBackends/SimdBackend.hpp"
 
-static float Indices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f}; // TODO: Poor naming. Pls, learn how to use for-loop instead of manually writing numbers
+static const float xIndices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f};
 
 static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
@@ -18,7 +18,7 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
     float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
-    avxf_t x0Arr = avxf_t (x0) + avxf_t (deltaX) * avxf_t (Indices) * avxf_t (camera->scale);
+    avxf_t x0Arr = avxf_t (x0) + avxf_t (deltaX) * avxf_t (xIndices) * avxf_t (camera->scale);
     avxf_t y0Arr (y0);
     
     avxf_t xN (x0Arr);

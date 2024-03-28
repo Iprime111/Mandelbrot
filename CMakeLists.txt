@@ -34,3 +34,6 @@ set_target_properties (${PROJECT_NAME} PROPERTIES
 
 install (TARGETS ${PROJECT_NAME})
 
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.glsl          ${CMAKE_BINARY_DIR}/bin/shaders/shader.glsl          COPYONLY)
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/fonts/JetBrainsMono-Bold.ttf ${CMAKE_BINARY_DIR}/bin/fonts/JetBrainsMono-Bold.ttf COPYONLY)
+

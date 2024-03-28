@@ -6,6 +6,11 @@
 
 #define GRADIENT_SIZE(GRAD) sizeof (GRAD) / sizeof (sf::Color)
 
+struct Gradient {
+    const sf::Color *colors = {};
+    const size_t     size   = 0;
+};  
+
 const sf::Color DEFAULT_GRADIENT [] = {
     sf::Color (  0,   7, 100),
     sf::Color ( 32, 107, 203),
@@ -26,19 +31,13 @@ const sf::Color BLACK_WHITE_GRADIENT [] {
     sf::Color (0, 0, 0),
 };
 
-// TODO how are you going to remember which index corresponds to the array you whant to know the size of?
-// It's better to create a struct of array of colors and it's size
-
-const size_t GRADIENT_SIZES [] = {GRADIENT_SIZE (DEFAULT_GRADIENT), GRADIENT_SIZE (GREEN_GRADIENT), 
-                                  GRADIENT_SIZE (BLACK_WHITE_GRADIENT)};
-
-static const sf::Color *GRADIENTS [] = {
-    DEFAULT_GRADIENT,
-    GREEN_GRADIENT,
-    BLACK_WHITE_GRADIENT,
+static const Gradient GRADIENTS [] = {
+    {.colors = DEFAULT_GRADIENT,     .size = GRADIENT_SIZE (DEFAULT_GRADIENT)},
+    {.colors = GREEN_GRADIENT,       .size = GRADIENT_SIZE (GREEN_GRADIENT)},
+    {.colors = BLACK_WHITE_GRADIENT, .size = GRADIENT_SIZE (BLACK_WHITE_GRADIENT)},
 };
 
-const size_t GRADIENTS_COUNT = sizeof (GRADIENTS) / sizeof (sf::Color *);
+const size_t GRADIENTS_COUNT = sizeof (GRADIENTS) / sizeof (Gradient);
 
 #undef GRADIENT_SIZE
 #endif

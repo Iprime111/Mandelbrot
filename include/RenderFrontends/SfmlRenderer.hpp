@@ -2,7 +2,8 @@
 #define SFML_RENDERER_HPP_
 
 #include "ErrorCode.hpp"
+#include "RenderFrontends/RenderContext.hpp"
 
-ErrorCode SfmlRenderCycle ();
+ErrorCode SfmlRenderCycle (RenderContext *context);
 
 #endif

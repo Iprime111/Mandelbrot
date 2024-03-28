@@ -15,58 +15,23 @@
 #include <cassert>
 #include <cstdio>
 #include <ctime>
+#include <unistd.h>
+#include <libgen.h>
 
 #include "ColorGradients.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "RenderBackends/BackendCommons.hpp"
 #include "RenderFrontends/SfmlRenderer.hpp"
+#include "RenderFrontends/RenderContext.hpp"
 #include "Timer.hpp"
 
-//TODO: RenderContext struct
+static ErrorCode ProcessEvents (RenderContext *context);
 
-static char *InfoTextBuffer = NULL; // TODO Why.... Or maybe you would like to init it right there, without any init functions wich user may forgot to call
+static char *RenderStatsToString (RenderContext *context, uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg);
 
-static ErrorCode InitText      (sf::Text *infoText, sf::Font *font);
-static ErrorCode InitShader    (sf::Shader *shader);
-static ErrorCode InitTexture   (sf::Texture *contentTexture, sf::Uint8 **texturePixels);
-static ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient);
-
-static char *RenderStatsToString (uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg, size_t currentBackend);
-
-#define DestroyEntities() DestroyTimers (); free (texturePixels); free (InfoTextBuffer);
-
-#define InitWithErrorCheck(INIT_FUNCTION) \
-    if ((error = INIT_FUNCTION) != ErrorCode::NO_ERRORS) {DestroyEntities (); return error;}
-
-ErrorCode SfmlRenderCycle () {
-    ErrorCode error = ErrorCode::NO_ERRORS;
-
-    Camera camera = {.position = sf::Vector2f (0.f, 0.f), .scale = 1.f};
-
-    // TODO I'd move this outside 'cos it has nothing common with "render" or "cycle"
-    //      it's just window creation wich take place one time
-    //      or move it to like "init" function
-    sf::RenderWindow mainWindow (sf::VideoMode (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar | sf::Style::Close);
-    sf::Texture contentTexture = {};
-    sf::Uint8 *texturePixels   = NULL;
-
-    InitWithErrorCheck (InitTexture (&contentTexture, &texturePixels)); //TODO Nice! You've just almost invented ctor-exceptions :) 
-
-    sf::Sprite contentSprite (contentTexture);
-
-    sf::Font font;      //TODO Why unitialized? Was that done on purpose?
-    sf::Text infoText;
-    sf::Text dataText;
-    InitWithErrorCheck (InitText (&infoText, &font));
-
-    InitWithErrorCheck (InitTimers (TIMERS_COUNT));
-
-    sf::Shader shader;
-    InitWithErrorCheck (InitShader (&shader));
-
-    size_t currentBackend  = 0;
-    size_t currentGradient = 0;
+ErrorCode SfmlRenderCycle (RenderContext *context) {
+    assert (context);
 
     size_t avgNumbers = 0;
     
@@ -76,32 +41,29 @@ ErrorCode SfmlRenderCycle () {
     uint64_t frameTimesSum  = 0;
     uint64_t renderTimesSum = 0;
 
-    //TODO: Here `SfmlRenderCycle` should be started
-    while (mainWindow.isOpen ()) {
+    while (context->mainWindow.isOpen ()) {
         StartTimer (FPS_TIMER);
-        if (ProcessEvents (&mainWindow, &camera, &currentBackend, &currentGradient) != ErrorCode::NO_ERRORS) {
+        if (ProcessEvents (context) != ErrorCode::NO_ERRORS) {
             break;
         }
 
-        mainWindow.clear ();
+        context->mainWindow.clear ();
         
         StartTimer (RENDER_TIMER);
 
         uint64_t renderTimeValue = 0;
 
-        if (currentBackend < BACKENDS_COUNT) {  // TODO it's unclear to my what does this `if` means
-                                                // Why don't you just create cyclic backend switchig?
-                                                // Why is that valid to choose 4th backend out of three available?
-            AVAILABLE_BACKENDS [currentBackend] (texturePixels, &camera, currentGradient);
-            contentTexture.update (texturePixels);
+        if (context->currentBackend < CPU_BACKENDS_COUNT) {
+            AVAILABLE_BACKENDS [context->currentBackend] (context->texturePixels, &context->camera, context->currentGradient);
+            context->contentTexture.update (context->texturePixels);
 
             renderTimeValue = GetTimerValue (RENDER_TIMER);
 
-            mainWindow.draw (contentSprite);
+            context->mainWindow.draw (context->contentSprite);
         } else {
-            shader.setUniform ("CameraPosition", camera.position);
-            shader.setUniform ("Scale", camera.scale);
-            mainWindow.draw (contentSprite, &shader);
+            context->shader.setUniform ("CameraPosition", context->camera.position);
+            context->shader.setUniform ("Scale", context->camera.scale);
+            context->mainWindow.draw   (context->contentSprite, &context->shader);
 
             renderTimeValue = GetTimerValue (RENDER_TIMER);
         }
@@ -122,67 +84,75 @@ ErrorCode SfmlRenderCycle () {
             avgNumbers     = 0;
         }
         
-        infoText.setString (RenderStatsToString (frameTimeValue, frameTimeAvg, renderTimeValue, renderTimeAvg, currentBackend));
+        context->infoText.setString (RenderStatsToString (context, frameTimeValue, frameTimeAvg, renderTimeValue, renderTimeAvg));
         
-        mainWindow.draw (infoText);
-        mainWindow.display ();
+        context->mainWindow.draw (context->infoText);
+        context->mainWindow.display ();
     }
     
-    // TODO: also move deinit to main
-    DestroyEntities ();
-
     return ErrorCode::NO_ERRORS;
 }
 
-static char *RenderStatsToString (uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg, size_t currentBackend) {
+static char *RenderStatsToString (RenderContext *context, uint64_t frameTimeValue, uint64_t frameTimeAvg, uint64_t renderTimeValue, uint64_t renderTimeAvg) {
 
-    snprintf (InfoTextBuffer, MAX_INFO_TEXT_LENGTH, INFO_TEXT_FORMAT_STRING, 
+    snprintf (context->infoTextBuffer, MAX_INFO_TEXT_LENGTH, INFO_TEXT_FORMAT_STRING, 
               frameTimeValue, frameTimeAvg, renderTimeValue, 
-              renderTimeAvg, BACKEND_NAMES [currentBackend]);
+              renderTimeAvg, BACKEND_NAMES [context->currentBackend]);
 
-    return InfoTextBuffer;
+    return context->infoTextBuffer;
 }
 
-static inline ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *camera, size_t *currentBackend, size_t *currentGradient) {
-    assert (mainWindow);
-    assert (camera);
+static ErrorCode ProcessEvents (RenderContext *context) {
+    assert (context->mainWindow);
+    assert (context->camera);
 
     #define Key(KEY_CODE) case sf::Keyboard::Scancode::KEY_CODE:
-    #define IncrementCameraField(FIELD, VALUE) camera->FIELD += (VALUE) * camera->scale; break
+    #define IncrementCameraField(FIELD, VALUE) context->camera.FIELD += (VALUE) * context->camera.scale; break
     #define IncrementRenderParameter(PARAMETER, MAX_VALUE) \
-        if (*(PARAMETER) < MAX_VALUE) {                    \
-            (*(PARAMETER))++;                              \
+        if (context->PARAMETER < MAX_VALUE) {              \
+            context->PARAMETER++;                          \
         } else {                                           \
-            *(PARAMETER) = 0;                              \
+            context->PARAMETER = 0;                        \
         }                                                  \
         break
 
     #define DecrementRenderParameter(PARAMETER, MAX_VALUE) \
-        if (*(PARAMETER) > 0) {                            \
-            (*(PARAMETER))--;                              \
+        if (context->PARAMETER > 0) {                      \
+            context->PARAMETER--;                          \
         } else {                                           \
-            *(PARAMETER) = MAX_VALUE;                      \
+            context->PARAMETER = MAX_VALUE;                \
         }                                                  \
         break
 
 
-    for (sf::Event event = {}; mainWindow->pollEvent (event);) {
+    for (sf::Event event = {}; context->mainWindow.pollEvent (event);) {
         if (event.type == sf::Event::Closed) {
-            mainWindow->close ();
+            context->mainWindow.close ();
             return ErrorCode::WINDOW_CLOSED;
 
         } else if (event.type == sf::Event::KeyPressed) {
             switch (event.key.scancode) {
-                Key (Equal)  if (camera->scale > MIN_SCALING) {IncrementCameraField (scale, -SCALE_INCREMENT);} break; //TODO it's better to make such a long case-statements multiline with `{}` block
-                Key (Hyphen) if (camera->scale < MAX_SCALING) {IncrementCameraField (scale,  SCALE_INCREMENT);} break;
+                Key (Equal) {
+                    if (context->camera.scale > MIN_SCALING) {
+                        IncrementCameraField (scale, -SCALE_INCREMENT);
+                    }
+                    break;
+                }
+
+                Key (Hyphen) {
+                    if (context->camera.scale < MAX_SCALING) {
+                        IncrementCameraField (scale,  SCALE_INCREMENT);
+                    } 
+                    break;
+                }
 
                 Key (W) Key (Up)    IncrementCameraField (position.y, -Y_SPEED);
                 Key (A) Key (Left)  IncrementCameraField (position.x, -X_SPEED);
                 Key (S) Key (Down)  IncrementCameraField (position.y,  Y_SPEED);
                 Key (D) Key (Right) IncrementCameraField (position.x,  X_SPEED);
 
-                Key (J) DecrementRenderParameter (currentBackend,  BACKENDS_COUNT); // TODO oh, you're little vim enjoyer
-                Key (K) IncrementRenderParameter (currentBackend,  BACKENDS_COUNT);
+                Key (J) DecrementRenderParameter (currentBackend,  CPU_BACKENDS_COUNT);
+                Key (K) IncrementRenderParameter (currentBackend,  CPU_BACKENDS_COUNT);
                 Key (H) DecrementRenderParameter (currentGradient, GRADIENTS_COUNT - 1);
                 Key (L) IncrementRenderParameter (currentGradient, GRADIENTS_COUNT - 1);
  
@@ -200,50 +170,4 @@ static inline ErrorCode ProcessEvents (sf::RenderWindow *mainWindow, Camera *cam
     return ErrorCode::NO_ERRORS;
 }
 
-static ErrorCode InitText (sf::Text *infoText, sf::Font *font) {
-    assert (infoText);
-    assert (font);
-
-    if (!font->loadFromFile ("../fonts/JetBrainsMono-Bold.ttf")) { // TODO: Same issue with path. Check next TODO
-        return ErrorCode::FONT_NOT_LOADED;
-    }
-
-    infoText->setFont (*font);
-    infoText->setCharacterSize (INFO_TEXT_SIZE);
-    infoText->setFillColor (sf::Color::Green);
-    infoText->setStyle (sf::Text::Bold);
-    infoText->setString ("");
-    
-    InfoTextBuffer = (char *) calloc (MAX_INFO_TEXT_LENGTH, sizeof (char)); // TODO is this a fucking global variable??? You wanna me to got an heart attack?
-
-    return ErrorCode::NO_ERRORS;
-}
-
-static ErrorCode InitShader (sf::Shader *shader) {
-    assert (shader);
-
-    if (!shader->loadFromFile ("../shaders/shader.glsl", sf::Shader::Fragment)) // TODO: path like that will not always work. 
-                                                                                // Try to run your program like `./build/bin/program`. 
-                                                                                // Then it will try to search shader in ./build/../.... directory
-        return ErrorCode::SHADER_LOAD_ERROR;
-
-    shader->setUniform ("ScreenSize", sf::Vector2f ((float) DEFAULT_WINDOW_WIDTH, (float) DEFAULT_WINDOW_HEIGHT));
-
-    return ErrorCode::NO_ERRORS;
-}
-
-static ErrorCode InitTexture (sf::Texture *contentTexture, sf::Uint8 **texturePixels) {
-    assert (contentTexture);
-    assert (texturePixels);
-
-    *texturePixels = (sf::Uint8 *) calloc (DEFAULT_WINDOW_WIDTH * DEFAULT_WINDOW_HEIGHT * BYTES_PER_PIXEL, sizeof (sf::Uint8));
-
-    if (!contentTexture->create (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT))
-        return ErrorCode::ALLOCATION_ERROR;
-
-    for (size_t alphaNumber = 0; alphaNumber < DEFAULT_WINDOW_WIDTH * DEFAULT_WINDOW_HEIGHT; alphaNumber++)
-        (*texturePixels) [alphaNumber * BYTES_PER_PIXEL + 3] = 0xff;    // TODO: weird magic constants. Create `const int` for them
-
-    return ErrorCode::NO_ERRORS;
-}
 
