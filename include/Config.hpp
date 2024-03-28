@@ -4,6 +4,10 @@
 #include "RenderBackends/BackendCommons.hpp"
 #include <cstddef>
 
+// TODO I think it's better to put path to shaders here like
+// const char shaders_dir[] = "%s/shaders/dir"
+// where %s should be replaced with path to project's directory
+
 const size_t DEFAULT_WINDOW_WIDTH     = 800; 
 const size_t DEFAULT_WINDOW_HEIGHT    = 600;
 const size_t BYTES_PER_PIXEL          = 4;

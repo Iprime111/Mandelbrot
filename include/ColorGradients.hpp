@@ -26,6 +26,9 @@ const sf::Color BLACK_WHITE_GRADIENT [] {
     sf::Color (0, 0, 0),
 };
 
+// TODO how are you going to remember which index corresponds to the array you whant to know the size of?
+// It's better to create a struct of array of colors and it's size
+
 const size_t GRADIENT_SIZES [] = {GRADIENT_SIZE (DEFAULT_GRADIENT), GRADIENT_SIZE (GREEN_GRADIENT), 
                                   GRADIENT_SIZE (BLACK_WHITE_GRADIENT)};
 

@@ -17,7 +17,7 @@ void SetPixelColor (sf::Uint8 *pixelArray, size_t iterationCount, size_t pixelX,
 
     float mu = (float) iterationCount / (float) MAX_ITERATIONS_PER_PIXEL * (float) GRADIENT_SIZES [gradientNumber];
     
-    int clr1 = (int) mu;
+    int clr1 = (int) mu;            //TODO poor variable names
     float t2 = mu - (float) clr1;
     float t1 = 1 - t2;
     clr1 = clr1 % (int) GRADIENT_SIZES [gradientNumber];

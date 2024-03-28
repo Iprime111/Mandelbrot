@@ -8,7 +8,7 @@
 #include "RenderBackends/DefaultBackend.hpp"
 #include "RenderBackends/PixelColor.hpp"
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
+static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber); //TODO why is there function's header if function goes right after it?
 
 static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
@@ -34,7 +34,7 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber) {
+ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber) { // TODO this fucntion looks almost the same in all three backends. Think about how to unite them
     assert (pixelArray);
     assert (camera);
     

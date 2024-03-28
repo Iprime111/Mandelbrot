@@ -10,7 +10,7 @@
 #include "RenderBackends/PixelColor.hpp"
 #include "RenderBackends/SimdBackend.hpp"
 
-static float Indices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f};
+static float Indices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f}; // TODO: Poor naming. Pls, learn how to use for-loop instead of manually writing numbers
 
 static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
