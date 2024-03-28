@@ -1,20 +1,17 @@
 #include <SFML/Config.hpp>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 #include "Camera.hpp"
 #include "Config.hpp"
 #include "ErrorCode.hpp"
-#include "RenderBackends/PixelColor.hpp"
 #include "RenderBackends/ArrayOptimizationsBackend.hpp"
 
 static const size_t OPTIMIZATION_RATE = 16;
 #define Foreach(CALLBACK) do {for (size_t idx = 0; idx < OPTIMIZATION_RATE; idx++) {CALLBACK;}} while (0)
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
+ErrorCode UpdatePixelArrayOptimized (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
     float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
@@ -54,15 +51,4 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureArrayOptimized (sf::Uint8 *pixelArray, Camera *camera,  size_t gradientNumber) {
-    assert (pixelArray);
-    assert (camera);
 
-    for (size_t y = 0; y < DEFAULT_WINDOW_HEIGHT; y++) {
-        for (size_t x = 0; x < DEFAULT_WINDOW_WIDTH; x += OPTIMIZATION_RATE) {
-            UpdatePixel (pixelArray, camera, x, y, gradientNumber);
-        }
-    }
-
-    return ErrorCode::NO_ERRORS;
-}

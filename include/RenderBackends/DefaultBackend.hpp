@@ -7,6 +7,6 @@
 #include "Camera.hpp"
 #include "ErrorCode.hpp"
 
-ErrorCode UpdateTextureDefault (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber);
+ErrorCode UpdatePixelDefault (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
 
 #endif

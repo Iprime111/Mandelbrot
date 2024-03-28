@@ -1,5 +1,4 @@
 #include <SFML/Config.hpp>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 
@@ -7,14 +6,11 @@
 #include "Config.hpp"
 #include "ErrorCode.hpp"
 #include "RenderBackends/AvxDataTypes.hpp"
-#include "RenderBackends/PixelColor.hpp"
 #include "RenderBackends/SimdBackend.hpp"
 
 static const float xIndices [OPTIMIZATION_RATE] = {15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f};
 
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber);
-
-static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
+ErrorCode UpdatePixelSimd (sf::Uint8 *pixelArray, Camera *camera, size_t pixelX, size_t pixelY, size_t gradientNumber) {
     float x0 = ((float) pixelX - (float) DEFAULT_WINDOW_WIDTH  / 2) * deltaX * camera->scale + camera->position.x;
     float y0 = ((float) pixelY - (float) DEFAULT_WINDOW_HEIGHT / 2) * deltaY * camera->scale + camera->position.y;
 
@@ -48,15 +44,4 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     return ErrorCode::NO_ERRORS;
 }
 
-ErrorCode UpdateTextureSimd (sf::Uint8 *pixelArray, Camera *camera, size_t gradientNumber) {
-    assert (pixelArray);
-    assert (camera);
-    
-    for (size_t y = 0; y < DEFAULT_WINDOW_HEIGHT; y++) {
-        for (size_t x = 0; x < DEFAULT_WINDOW_WIDTH; x += OPTIMIZATION_RATE) {
-            UpdatePixel (pixelArray, camera, x, y, gradientNumber);
-        }
-    }
 
-    return ErrorCode::NO_ERRORS;
-}

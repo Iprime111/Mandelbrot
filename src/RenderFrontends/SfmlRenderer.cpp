@@ -21,6 +21,7 @@
 #include "ColorGradients.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
+#include "RenderBackends/AvxDataTypes.hpp"
 #include "RenderBackends/BackendCommons.hpp"
 #include "RenderFrontends/SfmlRenderer.hpp"
 #include "RenderFrontends/RenderContext.hpp"
@@ -54,7 +55,7 @@ ErrorCode SfmlRenderCycle (RenderContext *context) {
         uint64_t renderTimeValue = 0;
 
         if (context->currentBackend < CPU_BACKENDS_COUNT) {
-            AVAILABLE_BACKENDS [context->currentBackend] (context->texturePixels, &context->camera, context->currentGradient);
+            UpdateTexture (context, AVAILABLE_BACKENDS [context->currentBackend].batchSize, AVAILABLE_BACKENDS [context->currentBackend].updater);
             context->contentTexture.update (context->texturePixels);
 
             renderTimeValue = GetTimerValue (RENDER_TIMER);
