@@ -27,7 +27,7 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
     size_t iterations [OPTIMIZATION_RATE] = {}; Loop iterations [idx] = 0;
 
     for (size_t n = 0; n < MAX_ITERATIONS_PER_PIXEL; n++) {
-        float x2 [OPTIMIZATION_RATE] = {}; Loop x2 [idx] = xN [idx] * xN [idx];
+        float x2 [OPTIMIZATION_RATE] = {}; Loop x2 [idx] = xN [idx] * xN [idx]; // TODO define function-like (i.e. not constants) defines with `()` like `LOOP(....)`
         float y2 [OPTIMIZATION_RATE] = {}; Loop y2 [idx] = yN [idx] * yN [idx];
 
         float r2 [OPTIMIZATION_RATE] = {}; Loop r2 [idx] = x2 [idx] + y2 [idx];
@@ -45,7 +45,7 @@ static ErrorCode UpdatePixel (sf::Uint8 *pixelArray, Camera *camera, size_t pixe
 
         Loop xN [idx] = x2 [idx] - y2 [idx] + x0Arr [idx];
         Loop yN [idx] = 2 * xy [idx] + y0Arr [idx];
-    }
+    }    // TODO you forgot oto undef loop
 
     Loop SetPixelColor (pixelArray, iterations [idx], pixelX + idx, pixelY, gradientNumber);
 

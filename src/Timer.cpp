@@ -5,8 +5,8 @@
 
 #include "ErrorCode.hpp"
 
-static size_t    TimersCount = 0;
-static uint64_t *TimersArray = NULL;
+static size_t    TimersCount = 0; // TODO Oh my god, just create struct
+static uint64_t *TimersArray = NULL;//TODO I hate you, your mom, your dad, your grandparent and even you cat if you have one 
 
 inline uint64_t GetTime ();
 
@@ -22,7 +22,7 @@ ErrorCode InitTimers (size_t timersCount) {
 
 ErrorCode DestroyTimers () {
     free (TimersArray);
-    TimersArray = NULL;
+    TimersArray = NULL; 
     TimersCount = 0;
 
     return ErrorCode::NO_ERRORS;
@@ -47,7 +47,7 @@ long GetTimerValue (size_t timerIndex) {
 inline uint64_t GetTime () {
     uint32_t axReg = 0, dxReg = 0;
 
-    asm volatile ("rdtsc" : "=a" (axReg), "=d" (dxReg));
+    asm volatile ("rdtsc" : "=a" (axReg), "=d" (dxReg)); // TODO Is it really the simplest way to get current time?
     
     return ((uint64_t) dxReg << 32) | axReg;
 }

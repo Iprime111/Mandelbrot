@@ -41,7 +41,7 @@ union avxu_t {
     avxu_t operator* (const avxu_t &value);
 };
 
-inline avxf_t::avxf_t (__m512 value)                     :data (value) {}
+inline avxf_t::avxf_t (__m512 value)                     :data (value) {} // TODO your formatiing looks weird to me
 inline avxf_t::avxf_t (float  value)                     :data (_mm512_set1_ps (value)) {}
 inline avxf_t::avxf_t (float  values [OPTIMIZATION_RATE]):data (_mm512_set_ps  (values [0],  values [1],  values [2],  values [3],
                                                                                 values [4],  values [5],  values [6],  values [7],
